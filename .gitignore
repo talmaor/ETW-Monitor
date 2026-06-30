@@ -1,0 +1,12 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+
+# ETW capture output
+etw-claude-*.text
+etw-claude-*.jsonl
+etw-claude-*.analysis.md
