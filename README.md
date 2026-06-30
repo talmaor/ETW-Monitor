@@ -176,27 +176,22 @@ It logs (to `clip-<name>-<pid>-<ts>.jsonl` + console):
   logged within the last 10 s is dropped. Pastes are deliberate actions and are
   never deduped, even when repeated.
 
-**PID scoping is heuristic, and the tool is honest about it.** Claude is node.exe
-with *no window*, so a paste's foreground window is always the hosting terminal.
-Attribution walks the **process tree** (is the focused terminal an ancestor/
-descendant of the target node PID?) and tags every record with a `confidence`:
+**PID scoping is heuristic, and every record says how sure it is.** Each captured
+event carries a `confidence` tag that tells you exactly what was logged and why:
 
-| Confidence | Meaning |
+| Confidence | Outcome |
 |------------|---------|
-| `High`     | foreground is the target, or directly ancestor/descendant of it |
-| `Medium`   | foreground and target share a terminal ancestor |
-| `Low`      | a console host is focused but no tree link proven |
-| `None`     | unrelated foreground — **content is not read or logged** |
+| `High`     | content logged — the focused window is the target, or directly above/below it in the process tree |
+| `Medium`   | content logged — the focused window and the target share a terminal ancestor |
+| `Low`      | content logged — a console host is focused but no tree link was proven; treat attribution as unconfirmed |
+| `None`     | **nothing read or logged** — the foreground is an unrelated app |
 
-With **Windows Terminal** (where the shell's parent *is* `WindowsTerminal.exe`)
-this is reliable. With classic **conhost** it may only reach `Low`. **Multi-tab
-terminals cannot be disambiguated** — we can't know which tab had focus, so a
-paste into any tab of a focused terminal hosting the target will be attributed to
-it. Pastes into clearly unrelated apps (a browser, Notepad) are skipped entirely,
-keeping the capture scoped.
-
-> ⚠️ This mode records clipboard **text content** to disk. Run it only to monitor
-> your own machine / sessions.
+In practice: a paste into a terminal that hosts the target gets logged with a
+confidence you can trust to triage it, and a paste into anything else (a browser,
+Notepad) produces no record at all. Attribution is most reliable under **Windows
+Terminal**; classic **conhost** sessions may only reach `Low`, and a paste into a
+**multi-tab** terminal is attributed to the target if any tab hosts it — tabs
+cannot be told apart.
 
 Or directly:
 
